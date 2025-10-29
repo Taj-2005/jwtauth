@@ -77,7 +77,7 @@ export async function signin(req: Request, res: Response) {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            path: "/api/auth/refresh",
+            path: "/",
         });
 
         // Send access token in response
@@ -95,7 +95,7 @@ export async function signin(req: Request, res: Response) {
 export async function refreshTokenHandler(req: Request, res: Response) {
   try {
     // refresh token can come from cookie or body
-    const token = req.cookies?.jid || req.body?.refreshToken || req.headers["x-refresh-token"];
+    const token = req.body?.refreshToken || req.headers["x-refresh-token"];
     if (!token) return res.status(401).json({ error: "No refresh token provided" });
 
     // verify refresh token signature
@@ -108,7 +108,9 @@ export async function refreshTokenHandler(req: Request, res: Response) {
     }
 
     // find user and check stored token matches (simple rotation check)
+    console.log("Payload User ID:", payload.userId);
     const user = await User.findById(payload.userId);
+    console.log("Found User:", user ? user.username : "No user found");
     if (!user || !user.refreshToken) {
       return res.status(401).json({ error: "Invalid refresh token" });
     }
@@ -131,7 +133,7 @@ export async function refreshTokenHandler(req: Request, res: Response) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      path: "/api/auth/refresh",
+      path: "/",
     });
 
     return res.json({ accessToken: newAccessToken });
@@ -148,7 +150,7 @@ export async function logout(req: Request, res: Response) {
     const token = req.cookies?.jid || req.body?.refreshToken || req.headers["x-refresh-token"];
     if (!token) {
       // clear cookie anyway
-      res.clearCookie("jid", { path: "/api/auth/refresh" });
+      res.clearCookie("jid", { path: "/" });
       return res.json({ ok: true });
     }
 
@@ -159,7 +161,7 @@ export async function logout(req: Request, res: Response) {
       await user.save();
     }
 
-    res.clearCookie("jid", { path: "/api/auth/refresh" });
+    res.clearCookie("jid", { path: "/" });
     return res.json({ ok: true });
   } catch (err) {
     console.error(err);
