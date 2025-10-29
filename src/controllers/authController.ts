@@ -144,7 +144,7 @@ export async function refreshTokenHandler(req: Request, res: Response) {
 
 }
 
-export async function logout(req: Request, res: Response) {
+export async function signout(req: Request, res: Response) {
   try {
     // Remove refresh token server-side
     const token = req.cookies?.jid || req.body?.refreshToken || req.headers["x-refresh-token"];
